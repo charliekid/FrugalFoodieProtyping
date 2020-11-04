@@ -16,8 +16,14 @@ import java.util.List;
 
 public class SalesFileHandler {
     public static void readSalesFile(String filename, List saleList) {
-        String absolutePath = "/Users/charliekid/PycharmProjects/FrugalFoodieWebscrape/SaleItems.txt";
-        String temp = "";
+        //String absolutePath = "/Users/charliekid/PycharmProjects/FrugalFoodieWebscrape/SaleItems.txt";
+
+        // In order to reach file I do this
+        // if anyone knows a better way let me know because I built
+        // this method like 3 years ago and just have been reusing it.
+        String workingDirectory = System.getProperty("user.dir");
+        System.out.println(workingDirectory + " work directory");
+        String absolutePath = workingDirectory + "\\src\\" + filename;
 
         //Open FileReader and BufferReader
         FileReader fileReader = null;
@@ -35,43 +41,61 @@ public class SalesFileHandler {
         // Lets process the data
         inputStream = new BufferedReader(fileReader);
 
+        // The data we will be storing
         String itemName;
-        double itemPrice;
-        int itemUnit;
+        double itemPrice = 0.0;
+        String itemUnit = "";
+        int itemQty = 0;
 
+        // This try catch is because we will be using is because we using parsers so we need
+        // NumberFormatException. And because of .readLine() also throws IOException.
         try {
             String lineOfData;
             while((lineOfData = inputStream.readLine()) != null) {
-                //System.out.println("Line Read : " + lineOfData);
-                // Split on a comma and store items
+
                 String[] saleInfo = lineOfData.split(";");
-                //System.out.println("saleInfo length " + saleInfo.length);
                 itemName = saleInfo[0];
 
-                System.out.println("inside of saleInfo[1] " + saleInfo[1] + " does it contain / " + saleInfo[1].contains("/") );
-                // Checking to see if there are more than one items on sale
-                if(saleInfo[1].contains("/")) {
-                    String[] tempArray = saleInfo[1].split("/");
-                    itemUnit = Integer.parseInt(tempArray[0]);
-                    // locate where the $ and substring and parse from there
-                    //  i was getting errors from parsing anything like "$5"
-                    int location = (tempArray[1].indexOf('$') + 1);
-                    System.out.println("location of $ is at " + location);
-                    itemPrice = Double.parseDouble(tempArray[1].substring(location));
-                } else {
-                    String[] tempArray = saleInfo[1].split(" ");
-                    int location = (saleInfo[1].indexOf('$') + 1);
-                    itemPrice = Double.parseDouble(tempArray[0].substring(location));
-                    itemUnit = 1;
+                // Processing (4 lbs./$5) or (6/$10)
+                if(saleInfo[1].contains("/")) { // 4 lbs./$5
+                    String[] split1 = saleInfo[1].split("/");
+                    if(split1[0].contains(" ")) { // 4 lbs.
+                        String[] split2 = split1[0].split(" ");
+                        itemQty = Integer.parseInt(split2[0]);
+                        itemUnit = split2[1];
+                        itemPrice = Double.parseDouble(split1[1].substring(1));
+
+                    } else { // 6/$10
+                        itemQty = Integer.parseInt(split1[0]);
+                        itemPrice = Double.parseDouble(split1[1].substring(1));
+                        itemUnit = "na";
+                    }
+                // Processing weird (30% off) sales or similar. Lets worry about this later
+                } else if (saleInfo[1].contains("OFF")) {
+                    System.out.println("There is a % off and we are skipping this!");
+                    itemName = "SKIP";
+                // Processing ($.88 lbs) or ($1 each)
+                } else if (saleInfo[1].contains(" ")) {
+                    String[] split1 = saleInfo[1].split(" ");
+                    itemPrice = Double.parseDouble(split1[0].substring(1));
+                    itemUnit = split1[1];
+                    itemQty = 1;
+                // Processing any more weird data we get so we don't mess up our data.
+                } else
+                {
+                    itemName = "SKIP";
                 }
-                System.out.println("Adding " + itemName + " price: " + itemPrice + " unit: " + itemUnit);
-                //saleList.add(new SaleItem(itemName, itemPrice, itemUnit));
+                // error handling to skip the data we don't want
+                if(!itemName.equals("SKIP")) {
+                    saleList.add(new SaleItem(itemName, itemPrice, itemQty, itemUnit));
+                }
             }
+            inputStream.close();
         } catch (IOException ioe) {
             System.out.println("ERROR in IOException file handler " + ioe.getMessage());
         } catch (NumberFormatException nfe) {
             System.out.println("ERROR in NumberFormatException file hanlder " + nfe.getMessage());
         }
-        //inputStream.close();
+
     }
 }
