@@ -9,7 +9,7 @@ public class Main {
         //SalesFileHandler.readSalesFile("SaleItems.txt", salesList);
         //System.out.println("size = " + salesList.size());
         try {
-            Runtime.getRuntime().exec("python3 main.py");
+            Runtime.getRuntime().exec("python hello.py");
         }
         catch(SecurityException se) {
             System.out.println(se.getMessage());
