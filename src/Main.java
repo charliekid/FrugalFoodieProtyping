@@ -6,8 +6,8 @@ public class Main {
     public static void main(String[] args) {
         List salesList = new ArrayList<SaleItem>();
 
-        //SalesFileHandler.readSalesFile("SaleItems.txt", salesList);
-        //System.out.println("size = " + salesList.size());
+//        SalesFileHandler.readSalesFile("SaleItems.txt", salesList);
+//        System.out.println("size = " + salesList.size());
         try {
             Runtime.getRuntime().exec("python hello.py");
         }
